@@ -11,4 +11,3 @@ b=40.923e-6;
 %% Función de transferencia del motor DC
 num = [Kt];
 den = [L*J, L*b + R*J, R*b + Kt*Km];
-G_motor = tf(num, den);

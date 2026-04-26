@@ -16,10 +16,19 @@ G_cl = tf(sys_cl)
 %% Mostramos la ganancia estática
 GE = dcgain(G_cl)
 
+%% Hallamos la función de transferencia del motor
+G_motor = tf(num, den)
+
 %% Respuesta al escalón
 figure(1);
+step(6*G_motor);
+title('Respuesta al escalón del motor');
+
+%% Respuesta al escalón
+figure(2);
 step(6*G_cl);
 title('Respuesta al escalón del sistema completo');
+
 
 %% Parametros del PID 
 Kp = 0.06589;                               % Parametros del PID obtenidos a través de PID Tuning 
@@ -29,8 +38,11 @@ Ki = 20.07;
 C = pid(Kp, Ki, 0);
 G_PI = tf(C)
 
-%% Discretización para el microcontrolador
+%% Discretización para el ESP32
 Ts = 0.001;                                 % Periodo de muestreo    
-sysd = c2d(sys_cl, Ts, 'tustin');
-G_d = tf(sysd)
-pole(G_d)
+Pi_d = c2d(C, Ts, 'tustin');                % Discretizamos el PID
+
+%% Obtenemos los valores discretos para el ESP32
+[num_z, den_z]= tfdata(Pi_d, 'v')
+fprintf('Coeficientes para el ESP32:\n');
+disp(Pi_d)
