@@ -76,17 +76,26 @@ void setup() {
 
 // ──────────────────────────────────────────
 void loop() {
-  adelante(125);
+  static unsigned long t0 = millis();
+  static bool started = false;
+
+  if (!started) {
+    adelante(255);   // escalón de PWM
+    started = true;
+    t0 = millis();
+  }
+
+  float rpm = calcularRPM();
+  unsigned long t = millis() - t0;
+
+  Serial.print(t);
+  Serial.print(",");
+  Serial.println(rpm);
 
   delay(INTERVALO_MS);
 
-  long pos;
-  noInterrupts();
-    pos = conteo;
-  interrupts();
-
-  Serial.print("RPM: ");
-  Serial.print(calcularRPM());
-  Serial.print(" | Pos: ");
-  Serial.println(pos);
+  if (t > 3000) {
+    frenar();
+    while (1); // detener loop
+  }
 }
