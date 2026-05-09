@@ -31,8 +31,8 @@ title('Respuesta al escalón del sistema completo');
 
 
 %% Parametros del PID 
-Kp = 0.06589;                               % Parametros del PID obtenidos a través de PID Tuning 
-Ki = 20.07;
+Kp = 0.062787;                               % Parametros del PID obtenidos a través de PID Tuning 
+Ki = 1.8219;
 
 %% Función de transferencia del PID
 C = pid(Kp, Ki, 0);

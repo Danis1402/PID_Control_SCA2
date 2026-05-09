@@ -76,7 +76,7 @@ void setup() {
 
 // ──────────────────────────────────────────
 void loop() {
-  adelante(125);
+  adelante(255);
 
   delay(INTERVALO_MS);
 

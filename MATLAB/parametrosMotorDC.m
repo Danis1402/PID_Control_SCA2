@@ -2,12 +2,12 @@ clear all
 close all
 clc
 %% Parámetros del motor
-Km=0.06;
-Kt=0.06;
-R=4.7;
+Km=0.030766;
+Kt=Km;
+R=35.75;
 L= 0;
-J=7.95e-6;
-b=40.923e-6;
+J=1.4956e-6;
+b=6.4376e-6;
 %% Función de transferencia del motor DC
 num = [Kt];
 den = [L*J, L*b + R*J, R*b + Kt*Km];
