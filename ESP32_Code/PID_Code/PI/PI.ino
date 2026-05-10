@@ -15,7 +15,7 @@ const float CPR = 70.0; // ¡Verifica si este valor incluye la reductora!
 
 // --- Variables de Control PID ---
 const int   INTERVALO_MS = 100;   // Ts = 100ms (0.1s)
-float setpoint = 800;        // Velocidad deseada en RPM
+float setpoint = 1000;        // Velocidad deseada en RPM
 
 // Coeficientes obtenidos de MATLAB (Ya multiplicados por el factor de conversión 4.4)
 const float f = 4.45;
@@ -110,13 +110,9 @@ void loop() {
     e_prev = e_now;
 
     // 7. Monitorización (Usa el Serial Plotter de Arduino)
-    Serial.print("Setpoint:"); Serial.print(setpoint);
-    Serial.print(",");
-    Serial.print("RPM:"); Serial.print(rpmActual);
-    Serial.print(",");
-    Serial.print("PWM:"); Serial.println(u_now);
-    Serial.print(",");
+    Serial.print("Setpoint:"); Serial.print(setpoint);    Serial.print(", ");
+    Serial.print("RPM:");      Serial.print(rpmActual);   Serial.print(", ");
+    Serial.print("PWM:");      Serial.println(u_now);     Serial.print(", ");
     Serial.print("Error:"); Serial.print(e_now);
-    Serial.print(",");
   }
 }
