@@ -39,7 +39,7 @@ C = pid(Kp, Ki, 0);
 G_PI = tf(C)
 
 %% Discretización para el ESP32
-Ts = 0.001;                                 % Periodo de muestreo    
+Ts = 0.01;                                 % Periodo de muestreo    
 Pi_d = c2d(C, Ts, 'zoh');                % Discretizamos el PID
 
 %% Obtenemos los valores discretos para el ESP32
