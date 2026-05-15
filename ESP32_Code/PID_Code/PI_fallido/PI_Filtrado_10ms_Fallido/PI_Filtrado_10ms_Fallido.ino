@@ -1,36 +1,36 @@
 #include <Arduino.h>
 
-// --- Pines ---
+// --- Configuración de Pines ---
 const int IN1 = 10;
 const int IN2 = 9;
 const int PIN_A = 6;
 const int PIN_B = 7;
 
-// --- Configuración PWM (ESP32) ---
+// --- Configuración PWM ---
 const int FREQ_HZ    = 5000;
 const int RESOLUCION = 8;
 
 // --- Configuración Encoder ---
-const float CPR = 70.0; 
+const float CPR          = 70.0; 
+const int   INTERVALO_MS = 10;   // Ts = 0.01s (Mismo que usamos en MATLAB)
 
-// --- Variables de Control PID ---
-const int   INTERVALO_MS = 100;   // Ts = 100ms (0.1s)
-float setpoint = 800;             // Velocidad deseada en RPM
+// --- Variables de Estado del Sistema ---
+volatile long conteo = 0;
+unsigned long tiempoAnterior = 0;
 
-// Coeficientes obtenidos de MATLAB
-const float f = 4.45;
+// --- Parámetros del Filtro Paso Bajo ---
+float rpmFiltrada = 0;
+const float alpha = 0.2; 
+
+// --- Parámetros del Controlador PI ---
+float setpoint = 800.0;  // Velocidad deseada en RPM
+float u_prev = 0;        // u[n-1]
+float e_prev = 0;        // e[n-1]
+
+// Coeficientes de MATLAB escalados por el factor f=4.45
+const float f  = 0.5; 
 const float b0 = 0.0628 * f; 
 const float b1 = -0.0446 * f;
-
-float u_prev = 0; // Salida anterior (u[n-1])
-float e_prev = 0; // Error anterior (e[n-1])
-
-// --- Variables del Filtro Paso Bajo ---
-float rpmFiltrada = 0;
-const float alpha = 0.3; // Factor de filtrado (0.1 = mucho filtro, 0.9 = poco filtro)
-
-volatile long conteo = 0;
-unsigned long tiempoUltimoControl = 0;
 
 // ──────────────────────────────────────────
 void IRAM_ATTR isrEncoder() {
@@ -39,17 +39,14 @@ void IRAM_ATTR isrEncoder() {
 }
 
 // ──────────────────────────────────────────
-float calcularRPM(float dt_segundos) {
+float calcularRPM(float dt) {
   static long conteoAnterior = 0;
   long snapshot;
-
   noInterrupts();
     snapshot = conteo;
   interrupts();
-
   long delta = snapshot - conteoAnterior;
-  float rpm = (delta / CPR) * (60.0 / dt_segundos);
-
+  float rpm = (delta / CPR) * (60.0 / dt);
   conteoAnterior = snapshot;
   return rpm;
 }
@@ -68,7 +65,6 @@ void frenar() {
 // ──────────────────────────────────────────
 void setup() {
   Serial.begin(115200);
-  
   ledcAttach(IN1, FREQ_HZ, RESOLUCION);
   ledcAttach(IN2, FREQ_HZ, RESOLUCION);
   frenar();
@@ -76,48 +72,44 @@ void setup() {
   pinMode(PIN_A, INPUT_PULLUP);
   pinMode(PIN_B, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(PIN_A), isrEncoder, RISING);
-
-  Serial.println("Sistema de Control PI con Filtro Iniciado...");
+  
   delay(1000);
+  Serial.println("Control PI Iniciado...");
 }
 
 // ──────────────────────────────────────────
 void loop() {
-  unsigned long tiempoActual = millis();
+  unsigned long ahora = millis();
 
-  if (tiempoActual - tiempoUltimoControl >= INTERVALO_MS) {
-    float dt = (tiempoActual - tiempoUltimoControl) / 1000.0;
-    tiempoUltimoControl = tiempoActual;
+  if (ahora - tiempoAnterior >= INTERVALO_MS) {
+    float dt = (ahora - tiempoAnterior) / 1000.0;
+    tiempoAnterior = ahora;
 
-    // 1. Leer velocidad actual (bruta)
+    // 1. Obtener medida y filtrar (RETROALIMENTACIÓN)
     float rpmMedida = calcularRPM(dt);
-
-    // 2. Aplicar Filtro Paso Bajo
-    // rpmFiltrada = (1 - alpha) * anterior + alpha * actual
     rpmFiltrada = ( (1.0 - alpha) * rpmFiltrada ) + ( alpha * rpmMedida );
 
-    // 3. Calcular error usando la señal FILTRADA
+    // 2. Calcular Error actual: e[n]
     float e_now = setpoint - rpmFiltrada;
 
-    // 4. Ecuación en diferencias del PI
+    // 3. ECUACIÓN EN DIFERENCIAS (CONTROLADOR)
+    // u[n] = u[n-1] + b0*e[n] + b1*e[n-1]
     float u_now = u_prev + (b0 * e_now) + (b1 * e_prev);
 
-    // 5. Saturación (Anti-windup)
+    // 4. Saturación y Anti-Windup implícito
     if (u_now > 255) u_now = 255;
     if (u_now < 0)   u_now = 0;
 
-    // 6. Actuar sobre el motor
+    // 5. Actuar sobre el motor (SALIDA)
     adelante((int)u_now);
 
-    // 7. Actualizar estados
+    // 6. Actualizar estados para el siguiente ciclo
     u_prev = u_now;
     e_prev = e_now;
 
-    // 8. Monitorización
-    // Imprimimos la medida real y la filtrada para comparar en el Serial Plotter
-    Serial.print("Setpoint:");  Serial.print(setpoint);    Serial.print(",");
-    Serial.print("RPM_Filt:");  Serial.print(rpmFiltrada); Serial.print(",");
-    Serial.print("Error:");     Serial.print(e_now);       Serial.print(",");
-    Serial.print("PWM:");       Serial.println(u_now);
+    // 7. Monitorización para Serial Plotter
+    Serial.print("Setpoint:");    Serial.print(setpoint);    Serial.print(",");
+    Serial.print("RPM_Filtrada:"); Serial.print(rpmFiltrada); Serial.print(",");
+    Serial.print("PWM:");         Serial.println(u_now);
   }
 }

@@ -20,18 +20,18 @@ GE = dcgain(G_cl)
 G_motor = tf(num, den)
 
 %% Respuesta al escalón
-figure(1);
-step(6*G_motor);
-title('Respuesta al escalón del motor');
+%figure(1);
+%step(6*G_motor);
+%title('Respuesta al escalón del motor');
 
 %% Respuesta al escalón
-figure(2);
-step(6*G_cl);
-title('Respuesta al escalón del sistema completo');
+%figure(2);
+%step(6*G_cl);
+%title('Respuesta al escalón del sistema completo');
 
 
 %% Parametros del PID 
-Kp = 0.062787;                               % Parametros del PID obtenidos a través de PID Tuning 
+Kp = 0.062787;                              % Parametros del PID obtenidos a través de PID Tuning 
 Ki = 1.8219;
 
 %% Función de transferencia del PID
@@ -39,8 +39,8 @@ C = pid(Kp, Ki, 0);
 G_PI = tf(C)
 
 %% Discretización para el ESP32
-Ts = 0.01;                                 % Periodo de muestreo    
-Pi_d = c2d(C, Ts, 'zoh');                % Discretizamos el PID
+Ts = 0.02;                                      % Periodo de muestreo    
+Pi_d = c2d(C, Ts, 'zoh');                       % Discretizamos el PID
 
 %% Obtenemos los valores discretos para el ESP32
 [num_z, den_z]= tfdata(Pi_d, 'v')

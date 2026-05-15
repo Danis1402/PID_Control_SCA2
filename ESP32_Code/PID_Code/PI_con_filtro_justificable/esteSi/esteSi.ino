@@ -14,20 +14,20 @@ const int RESOLUCION = 8;
 const float CPR = 70.0; 
 
 // --- Variables de Control PID ---
-const int   INTERVALO_MS = 100;   // Ts = 100ms (0.1s)
+const int   INTERVALO_MS = 20;   // Ts = 100ms (0.1s)
 float setpoint = 800;             // Velocidad deseada en RPM
 
 // Coeficientes obtenidos de MATLAB
-const float f = 4.45;
+const float f = 1;
 const float b0 = 0.0628 * f; 
-const float b1 = -0.0446 * f;
+const float b1 = -0.0263 * f;
 
 float u_prev = 0; // Salida anterior (u[n-1])
 float e_prev = 0; // Error anterior (e[n-1])
 
 // --- Variables del Filtro Paso Bajo ---
 float rpmFiltrada = 0;
-const float alpha = 0.3; // Factor de filtrado (0.1 = mucho filtro, 0.9 = poco filtro)
+const float alpha = 0.4; // Factor de filtrado (0.1 = mucho filtro, 0.9 = poco filtro, 1 = no hay filtro)
 
 volatile long conteo = 0;
 unsigned long tiempoUltimoControl = 0;

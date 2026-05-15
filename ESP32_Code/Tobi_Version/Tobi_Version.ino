@@ -76,7 +76,7 @@ void setup() {
 
 // ──────────────────────────────────────────
 void loop() {
-  adelante(170);
+  adelante(180);
 
   delay(INTERVALO_MS);
 
@@ -85,8 +85,9 @@ void loop() {
     pos = conteo;
   interrupts();
 
-  Serial.print("RPM: ");
+  Serial.print("RPM:");
   Serial.print(calcularRPM());
-  Serial.print(" | Pos: ");
+  Serial.print(" "); // Espacio o coma sirven de separador
+  Serial.print("Posicion:");
   Serial.println(pos);
 }

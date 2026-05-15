@@ -11,14 +11,14 @@ const int FREQ_HZ    = 5000;
 const int RESOLUCION = 8;
 
 // --- Configuración Encoder ---
-const float CPR = 70.0; // ¡Verifica si este valor incluye la reductora!
+const float CPR = 70.0; // Este valor incluye la reductora
 
 // --- Variables de Control PID ---
 const int   INTERVALO_MS = 100;   // Ts = 100ms (0.1s)
-float setpoint = 1000;        // Velocidad deseada en RPM
+float setpoint = 700;        // Velocidad deseada en RPM
 
 // Coeficientes obtenidos de MATLAB (Ya multiplicados por el factor de conversión 4.4)
-const float f = 4.45;
+const float f = 2;
 const float b0 = 0.0628*f; 
 const float b1 = -0.0446*f;
 
@@ -97,6 +97,7 @@ void loop() {
 
     // 3. Ecuación en diferencias del PI: u[n] = u[n-1] + b0*e[n] + b1*e[n-1]
     float u_now = u_prev + (b0 * e_now) + (b1 * e_prev);
+  
 
     // 4. Saturación (Anti-windup implícito al limitar u_now antes de guardarla)
     if (u_now > 255) u_now = 255;
@@ -109,7 +110,7 @@ void loop() {
     u_prev = u_now;
     e_prev = e_now;
 
-    // 7. Monitorización (Usa el Serial Plotter de Arduino)
+    // 7. Monitorización 
     Serial.print("Setpoint:"); Serial.print(setpoint);    Serial.print(", ");
     Serial.print("RPM:");      Serial.print(rpmActual);   Serial.print(", ");
     Serial.print("PWM:");      Serial.println(u_now);     Serial.print(", ");
